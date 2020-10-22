@@ -1,6 +1,6 @@
 // import { Observable } from 'rxjs';
 
-// // PART 1
+// // GETTING_STARTED 1
 // // creating an observable from scratch
 
 // const observer = {
@@ -41,14 +41,14 @@
 
 // additional emissions from an observable after completing are ignored
 
-// PART 2 - variations for the subscribe method
+// GETTING_STARTED 2 - variations for the subscribe method
 // the subscribe method can accept
   // an observer object with
     // 1, 2, or 3 of the next, error, & complete functions, in any combination. When you're observer is converted into a subscriber, the functions you do not supply will be ignored, or stubbed out with defaults
   // nothing - but be careful because that could be a warning sign you've moved the logic elsewhere
   // next, error, & complete functions directly as arguments, in that order
 
-// // PART 3 - Observables emitting values asynchronously
+// // GETTING_STARTED 3 - Observables emitting values asynchronously
 // import { Observable } from 'rxjs';
 
 // const observer = {
@@ -79,37 +79,37 @@
 
 // // The Observable subscribe function that we pass to the constructor, can itself return a function that will be invoked when the Observable completes. This is a great place for clean up logic for any resources that the Observable created.
 
-// PART 4 - Managing Observable subscriptions
-import { Observable } from 'rxjs';
+// // GETTING_STARTED 4 - Managing Observable subscriptions
+// import { Observable } from 'rxjs';
 
-const observer = {
-  next: value => console.log('next: ', value),
-  error: error => console.log('error: ', error),
-  complete: () => console.log('complete')
-}
+// const observer = {
+//   next: value => console.log('next: ', value),
+//   error: error => console.log('error: ', error),
+//   complete: () => console.log('complete')
+// }
 
-const observable = new Observable(subscriber => {
-  let count = 0;
-  const id = setInterval(() => {
-    subscriber.next(count);
-    count += 1;
-  }, 1000);
+// const observable = new Observable(subscriber => {
+//   let count = 0;
+//   const id = setInterval(() => {
+//     subscriber.next(count);
+//     count += 1;
+//   }, 1000);
 
-  return () => {
-    clearInterval(id);
-    console.log('called');
-  };
-});
+//   return () => {
+//     clearInterval(id);
+//     console.log('called');
+//   };
+// });
 
-console.log('before');
-const subscription = observable.subscribe(observer)
-console.log('after');
+// console.log('before');
+// const subscription = observable.subscribe(observer)
+// console.log('after');
 
-const subscriptionTwo = observable.subscribe(observer);
-subscription.add(subscriptionTwo)
-setTimeout(() => {
-  subscription.unsubscribe()
-}, 3500)
+// const subscriptionTwo = observable.subscribe(observer);
+// subscription.add(subscriptionTwo)
+// setTimeout(() => {
+//   subscription.unsubscribe()
+// }, 3500)
 
 // One big advantage of using Observables is they allow for cancellation. ie, the consumer can tell the Observable that they've had enough, and no more values will be delivered.
 // Whenever you subscribe to an Observable, a subscription object is returned. 
@@ -122,7 +122,7 @@ setTimeout(() => {
 
 // subscription objects have an add() method which lets you add multiple subscriptions together, and also clean them up in one call.
 
-// RECAP 1
+// GETTING_STARTED_RECAP 1
 // Observables are push based, the Observable decides when to deliver data to the Observer, by invoking callbacks that you provide.
 // Observables are cold by default. Observables are not activated until you subscribe. Each subscription creates its own execution path between the producer and consumer (also known as unicasting)
 // Observables can emit multiple 0 - many, values
@@ -141,8 +141,8 @@ setTimeout(() => {
 
 // creation operators
 // fromEvent
-// of
-// from
+// of - emits, then completes
+// from - emits, then completes
 // interval
 // timer
 
@@ -150,7 +150,7 @@ setTimeout(() => {
 // mapping
   // map, pluck, mapTo
 // filtering
-  // filter
+  // filter - returns an observable that only emits certain values from the source observable
   // take - accepts a number of values you define from the source, before completing
   // first - take one value, but you want this to be dependant on some logic (shortcut for filtering for a specific condition, then taking 1 value)
   // takeWhile - accepts a predicate operator, emitting the same values as the source observable, as long of the predicate condition is met. As soon as the predicate returns false, the obsevable completes.
