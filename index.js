@@ -9,20 +9,51 @@
 //   complete: () => console.log('complete')
 // }
 
-// const observable = new Observable(subscriber => {
-//   subscriber.next('hello');
-//   subscriber.next('world');
-//   subscriber.complete()
-//   subscriber.next('world');
+// const observable = new Observable(function subscribe(subscriber) {
+//   subscriber.next('1');
+//   subscriber.next('2');
+//   subscriber.next('3');
+//   setTimeout(() => {
+//     subscriber.next('4');
+//     subscriber.complete();
+//   }, 1000);
 // });
 
 // console.log('before');
 // observable.subscribe(observer)
 // console.log('after');
 
+// // SUBSCRIPTION
+// const observer = {
+//   next: value => console.log('next: ', value),
+//   error: error => console.log('error: ', error),
+//   complete: () => console.log('complete')
+// }
+
+// const observable = new Observable(function subscribe(subscriber) {
+//   let num = 0; 
+//   subscriber.next(++num);
+//   subscriber.next(++num);
+//   subscriber.next(++num);
+//   const intervalId = setInterval(() => {
+//     subscriber.next(++num);
+//   }, 1000);
+//   return () => {
+//     clearInterval(intervalId);
+//     console.log('finished');
+//   }
+// });
+
+// console.log('before');
+// const subscription = observable.subscribe(observer)
+// console.log('after');
+// setTimeout(() => {
+//   subscription.unsubscribe();
+// }, 3000)
+
 // in RxJS, calling next on a subscriber is telling that subscriber that we have a new value for them. This is also know as pushing, or emitting a value.
 
-// The Observable constructor accepts a function, which itself takes a parameter called subscriber.
+// The Observable constructor accepts a function, called subscribe, which itself takes a parameter called subscriber.
 // this subscriber is an enhanced version of the observer you supply when subscribing to this observable
 // within this function, you can deliver 0 to many values to the observer by calling the subscriber's .next() method
 
@@ -32,7 +63,7 @@
 // calling subscribe on the observable, a way of hooking up an observable to its observer. Observers are the public, vanilla version of the subscriber that the Observable constructor function recieves as an argument.
 
 // when you call subscribe on an observable, it converts the observer you provide into a subscriber in order to safely handle things like completion, error handling, and unsubscribing. Subscribers are a wrapped, safe version of an observer
-// some of the values for the observer are optional, is this why?
+// some of the values for the observer are optional, this is part of why
 
 // observers are simply objects, that can contain up to 3 properties - next, error, complete, which can contain callbacks to be registered on the observable
 // next - represents the happy path function that is invoked when the observable emits a value. can be called 0 to many times
@@ -146,7 +177,43 @@
 // interval
 // timer
 
-// pipeable operators
+// // PIPEABLE OPERATORS
+// operator()(observable)
+
+// import { map, filter, take } from 'rxjs/operators';
+// import { interval } from 'rxjs';
+
+// const observer = {
+//   next: value => console.log(value),
+//   error: error => console.log(error),
+//   complete: () => console.log('finished')
+// };
+
+// // why does .pipe() exist?
+// // this is not very readable ...
+// take(3)(map(num => num * 2)(filter(num => num % 2 === 0)(interval(500)))).subscribe(observer);
+
+// // even doing some indenting only gets us something that still looks a lot like callback hell
+// take(3)(
+//   map(num => num * 2)(
+//     filter(num => num % 2 === 0)(
+//       interval(500)
+//     )
+//   )
+// ).subscribe(observer);
+
+// also, the order of the operators when looking at them in code is reversed from (probably) how we're thinking about them
+// interval()
+// filter()
+// map()
+// take()
+
+// interval(500).pipe(
+//   filter(num => num % 2 === 0),
+//   map(num => num * 2),
+//   take(3)
+// ).subscribe(observer)
+
 // mapping
   // map, pluck, mapTo
 // filtering
@@ -194,6 +261,35 @@
 
   // TODO: finish
   // concat (there are creation as well as pipeable operator versions) - creates an observable from a variable number of other observables that you supply. On subscription, concat will subscribe to the inner Observables in order. ie, as the first inner observable completes, concat subscribes to the second, etc... Any values emitted by inner observables are emitted by concat. default to concat as a creation operator, as it tends to be easier to read and reason about.
+
+// // HIGHER ORDER OBSERVABLES
+// import { interval, concat, from, fromEvent } from 'rxjs';
+// import { switchMap, tap, take, mergeMap } from 'rxjs/operators';
+
+// concat(
+//   interval(500).pipe(
+//     take(3)
+//   ),
+//   from(['a', 'b', 'c', 'd']),
+//   interval(500).pipe(
+//     take(3)
+//   ),
+// ).subscribe(value => console.log(value))
+
+// fromEvent(document, 'click').pipe(
+//   tap(() => console.log('click')),
+//   switchMap(() => {
+//     return interval(500).pipe(take(3))
+//   })
+// ).subscribe(value => console.log(value))
+
+// // difference between mergeMap & switchMap
+// fromEvent(document, 'click').pipe(
+//   tap(() => console.log('click')),
+//   mergeMap(() => {
+//     return interval(500).pipe(take(3))
+//   })
+// ).subscribe(value => console.log(value))
 
   // **creation operators**
 
