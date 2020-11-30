@@ -1,49 +1,9 @@
-// // GETTING STARTED 0
-// // document.addEventListener('click', () => console.log('Clicked!'));
-
-// import { fromEvent } from 'rxjs';
-// fromEvent(document, 'click')
-//   .subscribe(() => console.log('Clicked!'));
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // creation operators
 // fromEvent
-// of - emits, then completes
-// from - emits, then completes
+// of - each argument becomes a next notification, no flattening of the arguments. Then completes
+// from - converts various data types to observables. Iterables (ie, arrays an such) will be emitted as a sequence. Then completes
 // interval
 // timer
 
@@ -80,20 +40,11 @@
     // managing the creation of inner subscriptions for us, emitting the results. These are called flattening operators.
     // They take an observable that emits observables, and return an observable of just the emitted observable's values.
 
-  // mergeMap - maps values to a new observable on emissions from source, subscribing to & emitting results of inner observables. By default does NOT limit number of active inner observables (so be cautious about memory leaks from long running inner observables!)
-  // switchMap - like mergeMap, but only maintains one innerobservable at a time. So when we map to a new inner observable, the previous is completed.
-  // switches to a new observable on emissions from source, cancelling any previously active inner observables
-  // because of this cancellation behavior, it's the safest flattening operator, as it's much harder to create memory leaks than it is with mergeMap 
-  // useful for HTTP requests that can be cancelled (GET, probably), as well as any functionality around resetting, pausing, or resuming
-  // avoid switchMap when cancellation can have undesired effects, such as saves (POSTs, probably)
   // concatMap - queues each inner observable, until the previous one completes
   // exhaustMap - also maintains only 1 inner observable. Any new observable emissions are ignored if the current inner observable is still active. Useful when you have some UI element that can be spammed (ie, login button that triggers an AJAX request)
 
 // combination operators
   // startWith / endWith - appends any number of values to the beginning / end of a stream
-
-  // TODO: finish
-  // concat (there are creation as well as pipeable operator versions) - creates an observable from a variable number of other observables that you supply. On subscription, concat will subscribe to the inner Observables in order. ie, as the first inner observable completes, concat subscribes to the second, etc... Any values emitted by inner observables are emitted by concat. default to concat as a creation operator, as it tends to be easier to read and reason about.
 
   // **creation operators**
 
@@ -108,3 +59,61 @@
 
   // TODO: finish
   // forkJoin
+
+  // MASTERCLASS
+  // TODO: 
+    // multicast()
+    // .connect()
+    // multicast() & refCount()
+    // share()
+
+    // behaviorSubject
+      // variant of Subject, whereby any additional subscribers receive the last emitted value from the Subject on subscription
+    
+    // replaySubject
+      // variant of Subject, where you can configure some number, n, of values to be emitted to late subscribers on subscription
+
+    // shareReplay
+      // pipeable operator, that uses ReplaySubject behind the scenes (ie, turning a unicasting observable into a multicasting observable) while also emitting old values to late subscribers. Provides many options for controlling how & when replay values. If you don't need late subscribers to have access to old values, use the share operator instead.
+
+    // AsyncSubject
+      // variant of Subject that only emits the last emitted value to all subscribers when the Subject completes. AsyncSubjects do NOT emit any values to subscribers until completion. Only the last value is emitted to subscribers on completion. All previous values emitted to the AsyncSubject are ignored. Probably the least used of the Subject variants, useful when you want to multicast a single value on complete.
+
+    // Schedulers
+      // each scheduler accepts three arguments, 
+        // work - a function to be invoked on schedule
+        //  delay - time before the function should be called
+        // state - data that will be provided to your work function
+      // most static creation operators accept an optional scheduler as the last argument
+      // observeOn
+        // Lets you include schedulers at any point in the operator chain, mirroring the source emission values, but wrapping next, error, & complete notifications in the provided scheduler.
+        // observeOn wraps ALL notifications in the provided scheduler (so even error notifications will be delayed! VS delay, which will emit error notifications immediately)
+      // subscribeOn
+        // you can think about this as sort of like wrapping your entire subscribe block in a setTimeout
+    // asyncScheduler
+      // Lets you schedule tasks to be fired asynchronously, similar to setTimeout 
+    // asapScheduler
+      // executes tasks asynchronously, but as soon as possible, similar to queueing a microtask. Exercise caution when using the asapScheduler, because of how the microtask queue blocks.
+    // animationFrameScheduler
+      // Lets you schedule tasks before browser repaint, similar to requestAnimationFrame
+      // the delay must NOT be set (or set to 0), or else the asyncScheduler will be used instead
+    // queueScheduler
+      // Lets you schedule tasks synchronously, executing the next when the previous completes. ie, executes tasks synchronously, in a queue
+      // primary use case for this is when you need to control the order of tasks scheduled inside other tasks - tasks scheduled inside of other tasks will always be run after the outer task completes.
+
+import { animationFrameScheduler, interval, queueScheduler } from 'rxjs';
+import { takeWhile } from 'rxjs/operators';
+
+const observer = {
+  next: val => console.log('next', val),
+  error: err => console.log('error', err),
+  complete: () => console.log('complete')
+};
+
+queueScheduler.schedule(() => {
+  queueScheduler.schedule(() => {
+    console.log('inner queue');
+  });
+  console.log('first queue');
+});
+console.log('sync');
