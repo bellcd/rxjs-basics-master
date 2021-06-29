@@ -2,6 +2,9 @@
 
 // creation operators
 // fromEvent
+// subscription objects
+  // console.log()s as Subscriber object
+  // apparently you can call next() on these ... (ie, VS an observable, which you can NOT call next() on)
 // of - each argument becomes a next notification, no flattening of the arguments. Then completes
 // from - converts various data types to observables. Iterables (ie, arrays an such) will be emitted as a sequence. Then completes
 // interval
@@ -101,8 +104,8 @@
       // Lets you schedule tasks synchronously, executing the next when the previous completes. ie, executes tasks synchronously, in a queue
       // primary use case for this is when you need to control the order of tasks scheduled inside other tasks - tasks scheduled inside of other tasks will always be run after the outer task completes.
 
-import { animationFrameScheduler, interval, queueScheduler } from 'rxjs';
-import { takeWhile } from 'rxjs/operators';
+import { animationFrameScheduler, interval, queueScheduler, ajax, EMPTY, fromEvent } from 'rxjs';
+import { takeWhile, debounceTime, pluck, distinctUntilChanged, switchMap, catchError } from 'rxjs/operators';
 
 const observer = {
   next: val => console.log('next', val),
@@ -117,3 +120,27 @@ queueScheduler.schedule(() => {
   console.log('first queue');
 });
 console.log('sync');
+
+const BASE_URL = ''
+
+// brewery typeahead custom pipeable operator, for testing purposes
+export const breweryTypeahead = (ajaxHelper = ajax) => sourceObservable => {
+  return sourceObservable.pipe(
+    debounceTime(200),
+    pluck('target', 'value'),
+    distinctUntilChanged(),
+    switchMap(searchTerm => 
+      ajaxHelper.
+        getJSON(`${BASE_URL}?by_name=${searchTerm}`)
+        .pipe(catchError(() => EMPTY))
+    )
+  )
+}
+
+const source$ = fromEvent(document, 'click');
+const subscription = source$.subscribe(observer);
+source$.next();
+// console.log('subscription', subscription);
+// subscription.next('value');
+// subscription.unsubscribe();
+// subscription.next('value');
